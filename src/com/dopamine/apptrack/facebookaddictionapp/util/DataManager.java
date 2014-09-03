@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class DataManager {
 	//
 	//////////////////////////////////
 	
-	private static HashMap<String, Contact> contacts = null;
+	static HashMap<String, Contact> contacts = null;
 	public static boolean contactsDataReady() {if(contacts == null) return false; else return true;}
 	
 	//////////////////////////////////
@@ -52,15 +53,33 @@ public class DataManager {
 			ContactsRetriever contactsRetriever = new ContactsRetriever(context);	// initializes contacts hashmap
 			t1 = new Thread(contactsRetriever);
 			t1.start();
-			
-			SMSAnalysis smsAnalysis = new SMSAnalysis(context, t1);
-			Thread t2 = new Thread(smsAnalysis);
-			t2.start();
 		}
+		
+		SMSAnalysis smsAnalysis = new SMSAnalysis(context, t1);
+		Thread t2 = new Thread(smsAnalysis);
+		t2.start();
+		
+		
+
 	}
 	
 	public static Contact getContact(String phoneNumber, Context context){
 		return contacts.get(phoneNumber);
+	}
+	
+	public static Contact[] getTopContacts(int numberOfContacts, Context context){
+		List<Contact> contactList = new ArrayList<Contact>();
+		for(Contact c : contacts.values()) {
+			contactList.add(c);
+		}
+		Collections.sort(contactList);
+		
+		Contact[] topContacts = new Contact[numberOfContacts];
+		for(int i = 0; i < numberOfContacts; i++) {
+			topContacts[i] = contactList.get( contactList.size()-1 -i);
+		}
+		
+		return topContacts;
 	}
 	
 	//////////////////////////////////
@@ -119,15 +138,17 @@ public class DataManager {
 				// start times
 				writer.name(AppInfo.jsonFieldNames[1]);
 				writer.beginArray();
-				for (long l : appData.startTimes)
+				for (long l : appData.startTimes) {
 					writer.value(l);
+				}
 				writer.endArray();
 
 				// end times
 				writer.name(AppInfo.jsonFieldNames[2]);
 				writer.beginArray();
-				for (long l : appData.endTimes)
+				for (long l : appData.endTimes) {
 					writer.value(l);
+				}
 				writer.endArray();
 
 				writer.endObject();
@@ -176,8 +197,9 @@ public class DataManager {
 
 		try {
 			reader.beginArray();
-			while (reader.hasNext())
+			while (reader.hasNext()) {
 				appdataArray.add(new AppInfo(reader));
+			}
 			reader.endArray();
 
 		} catch (Exception e) {
@@ -241,8 +263,9 @@ public class DataManager {
 	}
 	
 	static void clearContactIntervals(){
-		for(Contact contact : contacts.values())
+		for(Contact contact : contacts.values()) {
 			contact.clearIntervals();
+		}
 	}
 	
 	static void contactsUpdated(Context context){
@@ -336,19 +359,25 @@ public class DataManager {
 			writer.setIndent("  ");
 
 			writer.beginArray();
-			for (Data data : list)
+			for (Data data : list) {
 				data.writeTo(writer);
+			}
 			writer.endArray();
 
 			writer.close();
 
-			if(BuildConfig.DEBUG) System.out.println("Saved " + fileName);
+			if(BuildConfig.DEBUG) {
+				System.out.println("Saved " + fileName);
+			}
 			
 			if(BuildConfig.DEBUG){
 				File externalFile = new File( Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 				boolean wroteToDownloads = writeToPublicFile(externalFile.getAbsolutePath(), getFileValue(fileName, context), context);
-				if(!wroteToDownloads) System.out.println("Backed up " + fileName + " to downloads");
-				else System.out.println("Wrote " + fileName + " to downloads");
+				if(!wroteToDownloads) {
+					System.out.println("Backed up " + fileName + " to downloads");
+				} else {
+					System.out.println("Wrote " + fileName + " to downloads");
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

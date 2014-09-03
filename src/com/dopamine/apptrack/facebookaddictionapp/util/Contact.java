@@ -9,7 +9,7 @@ import android.util.JsonWriter;
 
 import com.dopamine.apptrack.facebookaddictionapp.BuildConfig;
 
-public class Contact extends Data{
+public class Contact extends Data implements Comparable<Contact>{
 	static final String[] jsonFieldNames = {"lookupKey", "name", "number", "intervals"};
 	
 	public String lookupKey;
@@ -20,7 +20,7 @@ public class Contact extends Data{
 	public Contact(String lookupKey, String name, String number){
 		this.lookupKey = lookupKey;
 		this.name = name;
-		this.number = number;
+		this.number = scrubPhoneNumber(number);
 	}
 	
 	// read from file
@@ -29,20 +29,21 @@ public class Contact extends Data{
 		
 		while(reader.hasNext()){
 			String fieldName = reader.nextName();
-			if( fieldName.equals(jsonFieldNames[0]) )
+			if( fieldName.equals(jsonFieldNames[0]) ) {
 				lookupKey = reader.nextString();
-			else if( fieldName.equals(jsonFieldNames[1]) )
+			} else if( fieldName.equals(jsonFieldNames[1]) ) {
 				name = reader.nextString();
-			else if( fieldName.equals(jsonFieldNames[2]) )
+			} else if( fieldName.equals(jsonFieldNames[2]) ) {
 				number = reader.nextString();
-			else if( fieldName.equals(jsonFieldNames[3]) ){
+			} else if( fieldName.equals(jsonFieldNames[3]) ){
 				reader.beginArray();
-				while(reader.hasNext())
+				while(reader.hasNext()) {
 					intervals.add(reader.nextLong());
+				}
 				reader.endArray();
-			}
-			else
+			} else {
 				reader.skipValue();
+			}
 		}
 		
 		reader.endObject();
@@ -55,8 +56,9 @@ public class Contact extends Data{
 		// Keep a sorted list, from least to greatest
 			
 		int i = 0;
-		while(i<intervals.size() && intervals.get(i) < interval)
+		while(i<intervals.size() && intervals.get(i) < interval) {
 			i++;
+		}
 		
 		intervals.add(i,interval);
 	}
@@ -84,8 +86,9 @@ public class Contact extends Data{
 		writer.name(jsonFieldNames[2]).value(number);
 		writer.name(jsonFieldNames[3]);
 		writer.beginArray();
-		for(Long l : intervals)
+		for(Long l : intervals) {
 			writer.value(l);
+		}
 		writer.endArray();
 		
 		writer.endObject();
@@ -94,7 +97,7 @@ public class Contact extends Data{
 	public String getScrubbedPhoneNumber(){
 		// xxxxxxxxxx
 		
-		String temp = number.trim().replaceAll("[- +]", "");
+		String temp = number.trim().replaceAll("[^0-9]", "");
 		
 		switch(temp.length()){
 		case 10:
@@ -105,13 +108,15 @@ public class Contact extends Data{
 			// Service provider text message
 			return temp;
 		default:
-			if(BuildConfig.DEBUG) System.out.println("UNUSUAL PHONE NUMBER --> " + name + ":" + temp);
+			if(BuildConfig.DEBUG) {
+				System.out.println("UNUSUAL PHONE NUMBER --> " + name + ":" + temp);
+			}
 			return temp;
 		}
 	}
 	
 	public static String scrubPhoneNumber(String str){
-		String temp = str.trim().replaceAll("[- +]", "");
+		String temp = str.trim().replaceAll("[^0-9]", "");
 		
 		switch(temp.length()){
 		case 10:
@@ -122,10 +127,23 @@ public class Contact extends Data{
 			// Service provider text message
 			return temp;
 		default:
-			if(BuildConfig.DEBUG) System.out.println("UNUSUAL PHONE NUMBER --> " + temp);
+			if(BuildConfig.DEBUG) {
+				System.out.println("UNUSUAL PHONE NUMBER --> " + temp);
+			}
 			return temp;
 		}
 		
+	}
+	
+	public int numIntervals(){
+		return intervals.size();
+	}
+
+	@Override
+	public int compareTo(Contact another) {
+//		long intervalDifference = getMedianInterval() - another.getMedianInterval();
+//		return (int) intervalDifference;
+		return intervals.size() - another.intervals.size();
 	}
 	
 }

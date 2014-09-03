@@ -9,10 +9,11 @@ import android.widget.ImageView;
 
 import com.dopamine.apptrack.facebookaddictionapp.R;
 
-public class ContactView extends BaseAdapter {
+public class ContactGridAdapter extends BaseAdapter {
     private Context mContext;
+    private static final int numberOfTopContacts = 6;
 
-    public ContactView(Context c) {
+    public ContactGridAdapter(Context c) {
         mContext = c;
     }
 
@@ -45,6 +46,8 @@ public class ContactView extends BaseAdapter {
 			imageView = (ImageView) convertView;
 
         imageView.setImageResource(mThumbIds[position]);
+        
+        
         return imageView;
     }
 

@@ -35,6 +35,7 @@ public class ContactsRetriever implements Runnable{
 		    			String lookupKey = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY));
 		    			String contactName = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
 		    			String contactNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+		    			contactNumber = Contact.scrubPhoneNumber(contactNumber);
 		    			Contact contact = new Contact(lookupKey, contactName, contactNumber);
 		    			contacts.put(contactNumber, contact);
 //		    			break;	// gets only first phone number
